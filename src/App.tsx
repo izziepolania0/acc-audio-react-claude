@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
+import { ArrowLeftToLine } from "lucide-react";
+
 const AcceleratingMusicPlayer = () => {
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -176,7 +178,7 @@ const AcceleratingMusicPlayer = () => {
             onClick={seekBackward}
             className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-indigo-700 text-white text-xl hover:scale-110 transition-transform shadow-lg"
           >
-            ⏮
+            <ArrowLeftToLine />
           </button>
           <button
             onClick={togglePlay}
