@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef, type ChangeEvent } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AcceleratingMusicPlayer from "./components/AcceleratingMusicPlayer";
 
 interface Track {
   name: string;
   fileName: string;
   url: string;
+  albumArt: string;
 }
 
 const App: React.FC = () => {
@@ -20,18 +21,44 @@ const App: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const speedIntervalRef = useRef<number | null>(null);
 
-  // Start speed acceleration interval
+  const songs: Track[] = [
+    {
+      name: "Aidan",
+      fileName: "Aidan.mp3",
+      url: "/songs/Aidan.mp3",
+      albumArt: "public/albumArt/Aidan.jpg",
+    },
+    {
+      name: "Autumn Sun",
+      fileName: "autumn_sun.mp3",
+      url: "/songs/autumn_sun.mp3",
+      albumArt: "public/albumArt/autumn_sun.png",
+    },
+    {
+      name: "Best Part of Me",
+      fileName: "best_part_of_me.mp3",
+      url: "/songs/best_part_of_me.mp3",
+      albumArt: "public/albumArt/BestPart.jpg",
+    },
+    {
+      name: "Better Days",
+      fileName: "Better Days - LAKEY INSPIRED.mp3",
+      url: "/songs/Better Days - LAKEY INSPIRED.mp3",
+      albumArt: "public/albumArt/Better Days.jpg",
+    },
+  ];
+
   useEffect(() => {
     if (isPlaying) {
       if (speedIntervalRef.current) clearInterval(speedIntervalRef.current);
 
-      speedIntervalRef.current = setInterval(() => {
+      speedIntervalRef.current = window.setInterval(() => {
         if (!audioRef.current || !audioRef.current.duration) return;
 
-        const currentProgress =
+        const progress =
           audioRef.current.currentTime / audioRef.current.duration;
         const speedRange = maxSpeed - startSpeed;
-        const accelerationCurve = Math.pow(currentProgress, 1 / acceleration);
+        const accelerationCurve = Math.pow(progress, 1 / acceleration);
         const newSpeed = startSpeed + speedRange * accelerationCurve;
         const clampedSpeed = Math.min(maxSpeed, Math.max(startSpeed, newSpeed));
 
@@ -47,25 +74,9 @@ const App: React.FC = () => {
     };
   }, [isPlaying, startSpeed, maxSpeed, acceleration]);
 
-  // Handle file upload
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const url = URL.createObjectURL(file);
-    setCurrentTrack({
-      name: file.name.replace(/\.[^/.]+$/, ""),
-      fileName: file.name,
-      url: url,
-    });
-
-    if (audioRef.current) audioRef.current.src = url;
-  };
-
-  // Handle play/pause
   const togglePlay = () => {
     if (!currentTrack) {
-      alert("Please select an audio file first!");
+      alert("Please select a track!");
       return;
     }
 
@@ -78,7 +89,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Seek backward/forward
   const seekBackward = () => {
     if (audioRef.current)
       audioRef.current.currentTime = Math.max(0, currentTime - 10);
@@ -89,15 +99,13 @@ const App: React.FC = () => {
       audioRef.current.currentTime = Math.min(duration, currentTime + 10);
   };
 
-  // Format time display
   const formatTime = (seconds: number): string => {
     if (isNaN(seconds)) return "0:00";
     const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+    const remaining = Math.floor(seconds % 60);
+    return `${minutes}:${remaining.toString().padStart(2, "0")}`;
   };
 
-  // Audio event handlers
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
       setDuration(audioRef.current.duration);
@@ -120,10 +128,21 @@ const App: React.FC = () => {
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
+  const handleSelectTrack = (fileName: string) => {
+    const track = songs.find((t) => t.fileName === fileName);
+    if (track && audioRef.current) {
+      setCurrentTrack(track);
+      audioRef.current.src = track.url;
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
   return (
     <>
       <AcceleratingMusicPlayer
-        handleFileChange={handleFileChange}
+        songs={songs}
+        handleSelectTrack={handleSelectTrack}
         currentTrack={currentTrack}
         progress={progress}
         currentTime={currentTime}

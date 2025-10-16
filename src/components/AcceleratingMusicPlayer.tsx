@@ -3,11 +3,11 @@ import Controls from "./Controls";
 import ProgressBar from "./ProgressBar";
 import SpeedInfo from "./SpeedInfo";
 import TrackInfo from "./TrackInfo";
-import FileInput from "./FileInput";
 import React from "react";
 
 export default function AcceleratingMusicPlayer({
-  handleFileChange,
+  songs,
+  handleSelectTrack,
   currentTrack,
   progress,
   currentTime,
@@ -29,8 +29,14 @@ export default function AcceleratingMusicPlayer({
   handleTimeUpdate,
   handleEnded,
 }: {
-  handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  currentTrack: { name: string; fileName: string; url: string } | null;
+  songs: { name: string; fileName: string; url: string; albumArt: string }[];
+  handleSelectTrack: (fileName: string) => void;
+  currentTrack: {
+    name: string;
+    fileName: string;
+    url: string;
+    albumArt: string;
+  } | null;
   progress: number;
   currentTime: number;
   duration: number;
@@ -58,13 +64,25 @@ export default function AcceleratingMusicPlayer({
           🚀 Accelerating Player
         </h1>
 
-        {/* File Input */}
-        <FileInput handleFileChange={handleFileChange} />
+        {/* Track Selector */}
+        <div className="mb-6 text-center">
+          <select
+            className="px-4 py-2 rounded-lg bg-white/20 text-white cursor-pointer"
+            onChange={(e) => handleSelectTrack(e.target.value)}
+            value={currentTrack?.fileName || ""}
+          >
+            <option value="">Select a Track</option>
+            {songs.map((song) => (
+              <option key={song.fileName} value={song.fileName}>
+                {song.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        {/* Track Info */}
+        {/* Track Info (with album art) */}
         <TrackInfo currentTrack={currentTrack} />
 
-        {/* Progress Bar */}
         <ProgressBar
           progress={progress}
           currentTime={currentTime}
@@ -72,7 +90,6 @@ export default function AcceleratingMusicPlayer({
           formatTime={formatTime}
         />
 
-        {/* Controls */}
         <Controls
           seekBackward={seekBackward}
           togglePlay={togglePlay}
@@ -80,10 +97,8 @@ export default function AcceleratingMusicPlayer({
           isPlaying={isPlaying}
         />
 
-        {/* Speed Info */}
         <SpeedInfo playbackSpeed={playbackSpeed} />
 
-        {/* Settings */}
         <Settings
           startSpeed={startSpeed}
           setStartSpeed={setStartSpeed}
@@ -93,7 +108,6 @@ export default function AcceleratingMusicPlayer({
           setAcceleration={setAcceleration}
         />
 
-        {/* Hidden Audio Element */}
         <audio
           ref={audioRef}
           onLoadedMetadata={handleLoadedMetadata}
